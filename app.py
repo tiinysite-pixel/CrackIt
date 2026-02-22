@@ -53,7 +53,7 @@ def company(company_name):
 # ------------------ ADMIN LOGIN ------------------
 @app.route("/admin-login", methods=["GET", "POST"])
 def admin_login():
-    passw = "scrypt:32768:8:1$xW4InlOMW1ERy2Xc$f58c62e679bd5db03a0dab17acc5800873ed1c931f6758fb300b169cafbd6038e53c660c804a49b8f68531a9b23ec76994548f11fbf02dcecccbb4a0ba2af716"
+    passw = "scrypt:32768:8:1$awZEdQTIzIF2bKEB$3abd5bdfc4cf98ae6cd4bc32682d472db5158c17226996ad6e026307e62502504fe50a112a09c1c667d35f7e9618f9cd46e1971ad03c43ba965bb6223b0856be"
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -160,4 +160,5 @@ def logout():
 
 
 if __name__ == "__main__":
+
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
