@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3 text-center">{{ company }} Questions</h3>
+
+<p class="text-center text-muted">
+    Total Questions: {{ questions|length }}
+</p>
+
+<!-- Difficulty Count Badges -->
+<div class="mb-3 text-center">
+    <span class="badge bg-success me-2">
+        Easy:
+        {{ questions|selectattr("difficulty","equalto","Easy")|list|length }}
+    </span>
+
+    <span class="badge bg-warning text-dark me-2">
+        Medium:
+        {{ questions|selectattr("difficulty","equalto","Medium")|list|length }}
+    </span>
+
+    <span class="badge bg-danger">
+        Hard:
+        {{ questions|selectattr("difficulty","equalto","Hard")|list|length }}
+    </span>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-2">
+        <select id="difficultyFilter"
+                class="form-control"
+                onchange="applyFilters()">
+            <option value="All">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+    </div>
+
+    <div class="col-md-6 mb-2">
+        <input type="text"
+               id="searchInput"
+               class="form-control"
+               placeholder="Search questions..."
+               onkeyup="applyFilters()">
+    </div>
+</div>
+
+<!-- Accordion -->
+<div class="accordion" id="questionAccordion">
+
+    {% for q in questions %}
+    <div class="accordion-item mb-3 shadow"
+         data-difficulty="{{ q.difficulty if q.difficulty else 'Medium' }}">
+
+        <!-- Question Header -->
+        <h2 class="accordion-header" id="heading{{ loop.index }}">
+            <button class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ loop.index }}"
+                    aria-expanded="false">
+
+                <!-- Difficulty Badge -->
+                <span class="badge
+                {% if q.difficulty == 'Easy' %}
+                    bg-success
+                {% elif q.difficulty == 'Medium' %}
+                    bg-warning text-dark
+                {% else %}
+                    bg-danger
+                {% endif %}
+                me-2">
+
+                    {{ q.difficulty if q.difficulty else 'Medium' }}
+
+                </span>
+
+                <strong>{{ loop.index }}. {{ q.category }}</strong> –
+                {{ q.question.split('\n')[0] }}
+
+            </button>
+        </h2>
+
+        <!-- Question Body -->
+        <div id="collapse{{ loop.index }}"
+             class="accordion-collapse collapse"
+             data-bs-parent="#questionAccordion">
+
+            <div class="accordion-body question-content">
+
+                <pre class="question-box">
+{{ q.question }}
+                </pre>
+
+            </div>
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<!-- Combined Filter Script -->
+<script>
+function applyFilters() {
+    let searchValue = document.getElementById("searchInput").value.toLowerCase();
+    let difficultyValue = document.getElementById("difficultyFilter").value;
+
+    let items = document.querySelectorAll(".accordion-item");
+
+    items.forEach(item => {
+        let text = item.innerText.toLowerCase();
+        let itemDifficulty = item.getAttribute("data-difficulty");
+
+        let matchesSearch = text.includes(searchValue);
+        let matchesDifficulty = (difficultyValue === "All" || itemDifficulty === difficultyValue);
+
+        if (matchesSearch && matchesDifficulty) {
+            item.style.display = "";
+        } else {
+            item.style.display = "none";
+        }
+    });
+}
+</script>
+
+{% endblock %}

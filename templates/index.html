@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- HERO SECTION -->
+<div class="hero-section text-center">
+
+    <h1 class="display-5 mb-3">
+        CrackIt – Mastery Hub
+    </h1>
+
+    <p class="lead">
+        Company-Wise Technical Interview Preparation Portal
+    </p>
+
+    <div class="mt-4">
+        <a href="#companies" class="btn btn-primary btn-lg me-3">
+            Explore Companies
+        </a>
+        <a href="/admin-login" class="btn btn-outline-dark btn-lg">
+            Admin Login
+        </a>
+    </div>
+
+</div>
+
+<!-- FEATURES SECTION -->
+<div class="row text-center mt-5">
+
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 shadow feature-card">
+            <h4>Structured Content</h4>
+            <p>
+                Organized company-wise and category-wise questions 
+                for focused interview preparation.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 shadow feature-card">
+            <h4>Real Interview Questions</h4>
+            <p>
+                Carefully curated technical questions 
+                aligned with industry standards.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 shadow feature-card">
+            <h4>Efficient Learning</h4>
+            <p>
+                Expandable question explanations 
+                for deep conceptual understanding.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<!-- COMPANY SECTION -->
+<h3 id="companies" class="mt-5 text-center mb-4">
+    Available Companies
+</h3>
+
+<div class="row">
+    {% for company in companies %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow text-center p-4">
+            <h4>{{ company.name }}</h4>
+<p class="text-muted">{{ company.count }} Questions</p>
+
+<a href="{{ url_for('company', company_name=company.name) }}"
+   class="btn btn-primary mt-3 view-btn">
+    View Questions
+</a>
+
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center">No companies available.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

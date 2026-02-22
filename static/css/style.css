@@ -1,0 +1,244 @@
+/* =========================
+   GLOBAL FONT SETTINGS
+   ========================= */
+
+body {
+    background: #f4f6f9;
+    font-family: "Times New Roman", Times, serif;
+}
+
+/* All headings bold */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+.table {
+    border-radius: 10px;
+}
+
+/* Question Formatting */
+.question-box {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    font-size: 16px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+/* Footer */
+/* =========================
+   CAPSULE FOOTER STYLE
+   ========================= */
+
+.site-footer {
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+    text-align: center;
+    padding: 10px 20px;
+    background: #dee2e8;
+    color: #130101;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    border-radius: 50px;   /* Capsule shape */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+}
+
+/* Login Styling */
+.login-wrapper {
+    min-height: 85vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    width: 85%;
+    max-width: 1000px;
+    background: #f2f2f2;
+    border-radius: 40px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.login-left {
+    flex: 1;
+    background: #eaeaea;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.login-left img {
+    max-width: 100%;
+    height: auto;
+}
+
+.login-right {
+    flex: 1;
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-right .form-control {
+    height: 45px;
+    border-radius: 40px;
+}
+
+.login-btn {
+    height: 48px;
+    border-radius: 30px;
+    background: linear-gradient(to right, #6a9dfc, #1f6feb);
+    color: white;
+    border: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    opacity: 0.9;
+}
+
+/* Accordion */
+.accordion-item {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+}
+
+.question-content {
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .login-left {
+        display: none;
+    }
+
+    .login-right {
+        padding: 40px 25px;
+    }
+}
+
+/* =========================
+   LANDING PAGE STYLING
+   ========================= */
+
+.hero-section {
+    padding: 60px 20px;
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.hero-section h1 {
+    font-weight: bold;
+}
+
+.hero-section p {
+    font-size: 18px;
+}
+
+.feature-card {
+    transition: 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+/* =========================
+   HERO SECTION UPGRADE
+   ========================= */
+
+.hero-section {
+    padding: 50px 20px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.hero-section h1 {
+    font-weight: bold;
+    
+    color: #1f2937;
+}
+
+.hero-section .lead {
+    font-size: 18px;
+    
+    color: #374151;
+}
+
+.hero-section .btn-primary {
+    background-color: #1f6feb;
+    border: none;
+}
+
+.hero-section .btn-primary:hover {
+    background-color: #174ea6;
+}
+
+.hero-section .btn-outline-dark:hover {
+    background-color: #212529;
+    color: white;
+}
+
+/* =========================
+   FEATURE CARD COLORS (Improved)
+   ========================= */
+
+.feature-card {
+    border-radius: 18px;
+    transition: all 0.3s ease;
+    color: #1f2937;
+}
+
+/* Card 1 - Lavender */
+.row .col-md-4:nth-child(1) .feature-card {
+    background: #f3e8ff;   /* Light lavender */
+    border-left: 6px solid #7c3aed;
+}
+
+/* Card 2 - Mint */
+.row .col-md-4:nth-child(2) .feature-card {
+    background: #ecfdf5;   /* Light mint */
+    border-left: 6px solid #10b981;
+}
+
+/* Card 3 - Peach */
+.row .col-md-4:nth-child(3) .feature-card {
+    background: #fff1e6;   /* Light peach */
+    border-left: 6px solid #fb923c;
+}
+
+/* Hover Effect */
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}

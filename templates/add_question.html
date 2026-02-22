@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-4 text-center">Add Question</h3>
+
+<div class="card p-4 shadow">
+
+<form method="POST">
+
+    <!-- Company Dropdown -->
+    <div class="mb-3">
+        <label class="form-label"><b>Company</b></label>
+
+        <select name="company" id="companySelect"
+                class="form-control"
+                onchange="toggleNewCompanyInput()"
+                required>
+
+            <option value="" disabled selected>Select Company</option>
+
+            {% for company in companies %}
+                <option value="{{ company }}">{{ company }}</option>
+            {% endfor %}
+
+            <option value="new">➕ Add New Company</option>
+
+        </select>
+    </div>
+
+    <!-- Hidden New Company Input -->
+    <div class="mb-3" id="newCompanyDiv" style="display:none;">
+        <label class="form-label"><b>New Company Name</b></label>
+        <input type="text" name="new_company"
+               class="form-control"
+               placeholder="Enter New Company Name">
+    </div>
+
+    <!-- Category -->
+    <div class="mb-3">
+        <label class="form-label"><b>Category</b></label>
+        <input type="text" name="category"
+               class="form-control"
+               placeholder="Technical / HR / Coding">
+    </div>
+    <div class="mb-3">
+    <label><b>Difficulty</b></label>
+    <select name="difficulty" class="form-control">
+        <option value="Easy">Easy</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="Hard">Hard</option>
+    </select>
+</div>
+
+
+    <!-- Question -->
+    <div class="mb-3">
+        <label class="form-label"><b>Question</b></label>
+        <textarea name="question"
+                  class="form-control"
+                  rows="6"
+                  placeholder="Enter Question"
+                  required></textarea>
+    </div>
+
+    <button class="btn btn-success">Add Question</button>
+
+</form>
+
+</div>
+
+<script>
+function toggleNewCompanyInput() {
+    var select = document.getElementById("companySelect");
+    var newCompanyDiv = document.getElementById("newCompanyDiv");
+
+    if (select.value === "new") {
+        newCompanyDiv.style.display = "block";
+    } else {
+        newCompanyDiv.style.display = "none";
+    }
+}
+</script>
+
+{% endblock %}
