@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Map Courses to Students</h3>
+<div class="card p-4">
+    <div class="alert alert-info">Enter student emails (one per line) and select the courses.</div>
+    <form id="mappingForm" method="POST">
+        <div class="mb-3">
+            <label class="form-label">Student Emails</label>
+            <textarea name="emails" rows="5" class="form-control" placeholder="student1@example.com&#10;student2@example.com" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Default Password (min 6 chars)</label>
+            <input type="text" name="default_password" class="form-control" value="password123" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Select Courses to Assign</label>
+            <input type="text" id="courseSearch" class="form-control mb-2" placeholder="🔍 Search courses..." onkeyup="filterCourses()">
+            <div class="border p-3 rounded" style="max-height: 300px; overflow-y: auto;" id="coursesContainer">
+                {% for company in companies %}
+                <div class="form-check course-item" data-course-name="{{ company.name.lower() }}">
+                    <input class="form-check-input" type="checkbox" name="courses" value="{{ company.name }}" id="course_{{ loop.index }}">
+                    <label class="form-check-label" for="course_{{ loop.index }}">
+                        {{ company.name }}
+                        {% if company.is_private %}
+                            <span class="badge bg-secondary">Private</span>
+                        {% else %}
+                            <span class="badge bg-success">Public</span>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <small class="text-muted">Use search to find courses quickly.</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Admin Passkey</label>
+            <div class="input-group">
+                <input type="text" id="passkey" class="form-control" placeholder="6-digit passkey">
+                <button type="button" id="sendKeyBtn" class="btn btn-secondary">Send Passkey to Admin Email</button>
+                <button type="button" id="verifyBtn" class="btn btn-warning">Verify</button>
+            </div>
+            <span id="verifyStatus" class="small"></span>
+        </div>
+        <button type="submit" id="submitBtn" class="btn btn-success" disabled>Submit Mapping</button>
+    </form>
+</div>
+<script>
+function filterCourses() {
+    let searchTerm = document.getElementById("courseSearch").value.toLowerCase();
+    let items = document.querySelectorAll(".course-item");
+    items.forEach(item => {
+        let name = item.getAttribute("data-course-name");
+        item.style.display = name.includes(searchTerm) ? "flex" : "none";
+    });
+}
+let verified = false;
+document.getElementById('sendKeyBtn').onclick = () => {
+    fetch('/admin/send-passkey', {method:'POST'}).then(res=>res.json()).then(data=>{
+        alert(data.success ? 'Passkey sent to admin email' : 'Error: '+data.error);
+    });
+};
+document.getElementById('verifyBtn').onclick = () => {
+    let key = document.getElementById('passkey').value;
+    fetch('/admin/verify-passkey', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({passkey:key})})
+    .then(res=>res.json()).then(data=>{
+        if(data.success){
+            verified = true;
+            document.getElementById('verifyStatus').innerHTML = '<span class="text-success">✓ Verified</span>';
+            document.getElementById('submitBtn').disabled = false;
+        } else {
+            alert('Invalid passkey');
+        }
+    });
+};
+</script>
+{% endblock %}

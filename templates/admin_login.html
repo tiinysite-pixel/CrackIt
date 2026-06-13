@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="login-wrapper d-flex justify-content-center align-items-center">
+    <div class="login-container">
+
+        <div class="login-left">
+            <img src="{{ url_for('static', filename='images/login-illustration.png') }}"
+                 alt="Login Illustration">
+        </div>
+
+        <div class="login-right">
+            <h3 class="text-center mb-4">Admin Login</h3>
+
+            <form method="POST" action="{{ url_for('admin_login') }}">
+
+                <div class="mb-3">
+                    <input type="password"
+                           name="username"
+                           class="form-control"
+                           placeholder="Username"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <input type="password"
+                           name="password"
+                           class="form-control"
+                           placeholder="Password"
+                           required>
+                </div>
+
+                <button type="submit" class="btn login-btn w-100">
+                    Login
+                </button>
+                <div class="text-center mt-3 small-link"> Secure Admin Access </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Create New User</h3>
+<form method="POST">
+    <input type="email" name="username" class="form-control mb-2" placeholder="Email" required>
+    <input type="password" name="password" class="form-control mb-2" placeholder="Password (min 6 chars)" required>
+    <select name="role" class="form-control mb-2">
+        <option value="student">Student</option>
+        <option value="faculty">Faculty</option>
+        <option value="questionbank">Question Bank Editor</option>
+        <option value="admin">Admin</option>
+    </select>
+    <button class="btn btn-primary">Create User</button>
+</form>
+{% endblock %}

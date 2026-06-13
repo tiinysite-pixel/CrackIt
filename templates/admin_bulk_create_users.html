@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block admin_title %}Bulk Create Users{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4>Bulk Create Users</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Default Password (min 6 chars)</label>
+                <input type="text" name="default_password" class="form-control" value="password123">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">User Data (one per line: email, role, [section])</label>
+                <textarea name="users_data" rows="10" class="form-control" placeholder="student1@example.com, student, CSE-1
+student2@example.com, student, CSE-1
+faculty1@example.com, faculty
+testcreator@example.com, test_creator
+questionbank@example.com, question_bank_creator"></textarea>
+                <small class="text-muted">Roles: admin, faculty, student, question_bank_creator, test_creator. Section is optional only for students.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Users</button>
+            <a href="{{ url_for('admin_manage_users') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

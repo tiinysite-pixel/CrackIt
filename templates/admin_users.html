@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>All Users (including plain passwords)</h3>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr><th>Email</th><th>Role</th><th>Plain Password</th><th>Assigned Courses</th><th>Personal Details</th></tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.role }}</td>
+            <td>{{ u.plain_password if u.plain_password else 'hidden' }}</td>
+            <td>{{ u.assigned_companies | join(', ') if u.assigned_companies else '-' }}</td>
+            <td>{% if u.personal_details %}{{ u.personal_details.name }} / {{ u.personal_details.phone }}{% else %}-{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

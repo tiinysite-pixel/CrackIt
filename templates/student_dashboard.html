@@ -1,0 +1,33 @@
+{% extends "base_student.html" %}
+{% block student_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Courses</h5>
+                <p class="card-text">Access your enrolled courses</p>
+                <a href="{{ url_for('student_courses') }}" class="btn btn-light">View Courses</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Tests</h5>
+                <p class="card-text">Upcoming and completed tests</p>
+                <a href="{{ url_for('student_tests') }}" class="btn btn-light">View Tests</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Meetings</h5>
+                <p class="card-text">Live classes and recordings</p>
+                <a href="{{ url_for('student_meetings') }}" class="btn btn-light">View Meetings</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

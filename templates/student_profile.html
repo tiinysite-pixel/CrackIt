@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-4 mx-auto" style="max-width:600px">
+    <h3>My Profile</h3>
+    <p><strong>Email:</strong> {{ user.username }}</p>
+    <p><strong>Name:</strong> {{ user.personal_details.name if user.personal_details else 'Not set' }}</p>
+    <p><strong>Phone:</strong> {{ user.personal_details.phone if user.personal_details else 'Not set' }}</p>
+    <p><strong>Place:</strong> {{ user.personal_details.place if user.personal_details else 'Not set' }}</p>
+    <a href="{{ url_for('change_password') }}" class="btn btn-secondary mt-2">Change Password</a>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Create Editor / Admin</h3>
+<form method="POST">
+    <input type="text" name="username" class="form-control mb-2" placeholder="Username" required>
+    <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
+    <select name="role" class="form-control mb-2">
+        <option value="editor">Editor</option>
+        <option value="admin">Admin</option>
+    </select>
+    <button class="btn btn-primary">Create User</button>
+</form>
+{% endblock %}

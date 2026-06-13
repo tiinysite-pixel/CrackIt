@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block admin_title %}Edit Test{% endblock %}
+{% block content %}
+<h2>Edit Test: {{ test.name }}</h2>
+<form method="POST">
+    <div class="mb-3"><label>Test Name</label><input type="text" name="test_name" value="{{ test.name }}" class="form-control" required></div>
+    <div class="mb-3"><label>Description</label><textarea name="description" class="form-control">{{ test.description or '' }}</textarea></div>
+    <div class="mb-3"><input type="checkbox" name="proctored" {% if test.proctored %}checked{% endif %}> Proctored (webcam required)</div>
+    <div class="mb-3"><label>Start Date & Time</label><input type="datetime-local" name="start_datetime" value="{{ test.start_time.strftime('%Y-%m-%dT%H:%M') }}" class="form-control" required></div>
+    <div class="mb-3"><label>Duration (minutes)</label><input type="number" name="duration" value="{{ test.duration }}" class="form-control" required></div>
+    <div class="mb-3"><label>Instructions</label><textarea name="instructions" class="form-control" rows="3">{{ test.instructions or '' }}</textarea></div>
+    <div class="mb-3"><label>Select Students</label><select name="selected_students" multiple class="form-control" size="5" required>
+        {% for s in students %}<option value="{{ s.username }}" {% if s.username in test.assigned_students %}selected{% endif %}>{{ s.username }}</option>{% endfor %}
+    </select></div>
+    <div class="mb-3"><input type="checkbox" name="shuffle" {% if test.shuffle %}checked{% endif %}> Randomise questions per student</div>
+    <button type="submit" class="btn btn-primary">Update Test</button>
+</form>
+{% endblock %}

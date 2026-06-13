@@ -1,0 +1,35 @@
+{% extends "base_student.html" %}
+{% block student_title %}My Tests{% endblock %}
+{% block content %}
+<div class="row">
+    {% for t in tests %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5>{{ t.test.name }}</h5>
+                <p>{{ t.test.description }}</p>
+                <p><strong>Start:</strong> {{ t.test.start_time.strftime('%Y-%m-%d %H:%M') }}<br>
+                <strong>Duration:</strong> {{ t.test.duration }} min</p>
+                {% if t.status == 'not_started' %}
+                    {% if now >= t.test.start_time %}
+                        <a href="{{ url_for('start_test', assignment_id=t.assignment_id) }}" class="btn btn-primary">Start Test</a>
+                    {% else %}
+                        <span class="badge bg-secondary">Upcoming</span>
+                    {% endif %}
+                {% elif t.status == 'in_progress' %}
+                    <a href="{{ url_for('take_test', assignment_id=t.assignment_id) }}" class="btn btn-warning">Resume</a>
+                {% elif t.status == 'completed' %}
+                    {% if t.result_published %}
+                        <a href="{{ url_for('view_test_result', test_id=t.test._id) }}" class="btn btn-info">View Result (Score: {{ t.score }})</a>
+                    {% else %}
+                        <span class="badge bg-secondary">Result Awaited</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>No tests assigned yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block admin_title %}Manage Users{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h2>All Users</h2>
+    <div>
+        <a href="{{ url_for('admin_bulk_create_users') }}" class="btn btn-success">Bulk Create Users</a>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr><th>Email</th><th>Role</th><th>Section</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.role }}</td>
+                <td>{{ u.section if u.section else '-' }}</td>
+                <td>
+                    <a href="{{ url_for('admin_edit_user', user_id=u._id) }}" class="btn btn-sm btn-warning">Edit</a>
+                    {% if u.role != 'super_admin' %}
+                    <a href="{{ url_for('admin_delete_user', user_id=u._id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete user?')">Delete</a>
+                    {% endif %}
+                 </td>
+             </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

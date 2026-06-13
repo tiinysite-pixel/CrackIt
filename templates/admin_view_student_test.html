@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block admin_title %}Student Test Details{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4>Test: {{ test.name }}</h4>
+        <h5>Student: {{ student_email }}</h5>
+        <p><strong>Status:</strong> {{ assignment.status }} | 
+           <strong>Score:</strong> {{ assignment.score if assignment.score is not none else 'Not graded' }}</p>
+        <p><strong>Started:</strong> {{ assignment.started_at.strftime('%Y-%m-%d %H:%M:%S') if assignment.started_at else '-' }} |
+           <strong>Submitted:</strong> {{ assignment.submitted_at.strftime('%Y-%m-%d %H:%M:%S') if assignment.submitted_at else '-' }}</p>
+    </div>
+    <div class="card-body">
+        <h5>Answers</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr><th>Question</th><th>Student's Answer</th><th>Score</th><th>Correct Answer (for reference)</th></tr>
+                </thead>
+                <tbody>
+                    {% for ans in assignment.answers %}
+                    {% set qid = ans.question_id %}
+                    {% set q = question_details.get(qid, {}) %}
+                    <tr>
+                        <td>{{ q.get('text', 'N/A') }}</td>
+                        <td><pre class="bg-light p-2">{{ ans.answer }}</pre></td>
+                        <td>{{ ans.score }} / {{ q.get('marks', 1) }}</td>
+                        <td><pre class="bg-light p-2">{{ q.get('correct_answer', 'N/A') }}</pre></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h5 class="mt-4">Proctoring Recording</h5>
+        {% if proctor_video %}
+            <video width="100%" controls>
+                <source src="{{ url_for('static', filename='proctoring_videos/' + proctor_video.split('/')[-1]) }}" type="video/webm">
+                Your browser does not support video playback.
+            </video>
+        {% else %}
+            <div class="alert alert-warning">No proctoring video available.</div>
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('admin_test_results', test_id=test._id) }}" class="btn btn-secondary">Back to Results</a>
+    </div>
+</div>
+{% endblock %}

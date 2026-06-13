@@ -1,0 +1,18 @@
+{% extends "base_student.html" %}
+{% block student_title %}My Courses{% endblock %}
+{% block content %}
+<div class="row">
+    {% for company in companies %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5>{{ company.name }}</h5>
+                <p>{{ company.count }} questions</p>
+                {% if company.is_private %}<span class="badge bg-secondary">Private</span>{% else %}<span class="badge bg-success">Public</span>{% endif %}
+                <a href="{{ url_for('company', company_name=company.name) }}" class="btn btn-primary mt-2">View Questions</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

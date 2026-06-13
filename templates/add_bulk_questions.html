@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block admin_title %}Bulk Add Questions{% endblock %}
+{% block content %}
+<style>
+    .question-row { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    .remove-row { cursor: pointer; color: red; font-weight: bold; }
+    .add-row { margin-top: 10px; }
+</style>
+<h3 class="mb-4">Add Multiple Questions at Once</h3>
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5>Instructions</h5>
+        <ul>
+            <li>Each row represents one question.</li>
+            <li>You can add as many rows as you like using the "Add Row" button.</li>
+            <li>Select a company for each question, or enter a new company name below (all rows will use that new company if selected).</li>
+            <li>Questions are inserted all at once when you submit.</li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <!-- New company section (optional) -->
+            <div class="mb-4 p-3 border rounded">
+                <h6>Create a new company (optional)</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">New Company Name</label>
+                        <input type="text" name="new_company" class="form-control" placeholder="e.g., AMAZON">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="is_private" id="privateCheck">
+                            <label class="form-check-label" for="privateCheck">
+                                Make this company private (only mapped students)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <small class="text-muted">If you fill this, all rows below will use this new company (unless overridden per row).</small>
+            </div>
+
+            <!-- Dynamic questions table -->
+            <div id="questions-container">
+                <div class="question-row row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label">Question Text</label>
+                        <textarea name="question_text" class="form-control" rows="2" placeholder="Enter question..."></textarea>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Category</label>
+                        <input type="text" name="category" class="form-control" placeholder="Technical" value="Technical">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Difficulty</label>
+                        <select name="difficulty" class="form-select">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Company</label>
+                        <select name="company_name" class="form-select">
+                            <option value="">-- Use new company above --</option>
+                            {% for c in companies %}
+                            <option value="{{ c.name }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger remove-row" style="display:none;">✖</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-row" class="btn btn-secondary add-row mt-3">+ Add Another Question</button>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Submit All Questions</button>
+                <a href="{{ url_for('question_bank') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Clone row function
+    let rowCount = 1;
+    document.getElementById('add-row').addEventListener('click', function() {
+        let container = document.getElementById('questions-container');
+        let originalRow = container.querySelector('.question-row');
+        let newRow = originalRow.cloneNode(true);
+        // Clear textarea and inputs
+        newRow.querySelector('textarea').value = '';
+        newRow.querySelector('input[name="category"]').value = 'Technical';
+        newRow.querySelector('select[name="difficulty"]').selectedIndex = 1; // Medium
+        newRow.querySelector('select[name="company_name"]').selectedIndex = 0;
+        // Show remove button
+        let removeBtn = newRow.querySelector('.remove-row');
+        removeBtn.style.display = 'inline-block';
+        removeBtn.onclick = function() { newRow.remove(); };
+        container.appendChild(newRow);
+    });
+    // Initially hide remove button on first row (optional, can keep)
+    document.querySelectorAll('.remove-row')[0].style.display = 'none';
+</script>
+{% endblock %}

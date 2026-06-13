@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    #timer { font-size: 1.5rem; font-weight: bold; }
+    .question-card { margin-bottom: 20px; }
+    .code-editor { font-family: monospace; width: 100%; height: 200px; }
+    pre { background: #f4f4f4; padding: 8px; border-radius: 5px; }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <h3>{{ test.name }}</h3>
+            <div id="timer" class="alert alert-info"></div>
+            <form id="testForm" method="POST" action="{{ url_for('submit_test', assignment_id=assignment._id) }}">
+                {% for q in questions %}
+                <div class="card question-card">
+                    <div class="card-header">
+                        <strong>{{ q.category or 'General' }}</strong> ({{ q.marks }} marks)
+                        {% if q.type == 'coding' %}<span class="badge bg-info">Coding</span>{% endif %}
+                        {% if q.type == 'mcq' %}<span class="badge bg-primary">MCQ</span>{% endif %}
+                        {% if q.type == 'fill' %}<span class="badge bg-secondary">Fill in the blank</span>{% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p>{{ q.question|safe }}</p>
+                        {% if q.type == 'mcq' %}
+                            {% if q.options %}
+                                {% set options_list = q.options.split(',') if q.options is string else q.options %}
+                                {% for opt in options_list %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="answer_{{ q._id }}" value="{{ opt.strip() }}" id="opt_{{ loop.index }}">
+                                    <label class="form-check-label" for="opt_{{ loop.index }}">{{ opt.strip() }}</label>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-warning">No options provided for this MCQ.</div>
+                            {% endif %}
+                        {% elif q.type == 'fill' %}
+                            <input type="text" name="answer_{{ q._id }}" class="form-control" placeholder="Type your answer here">
+                        {% elif q.type == 'coding' %}
+                            <textarea name="code_{{ q._id }}" class="code-editor" data-language="python" placeholder="Write your code here..."></textarea>
+                            <button type="button" class="btn btn-secondary run-code mt-2" data-qid="{{ q._id }}">▶ Run Code</button>
+                            <pre class="output-{{ q._id }} mt-2"></pre>
+                        {% else %}
+                            <textarea name="answer_{{ q._id }}" class="form-control" rows="3" placeholder="Your answer here..."></textarea>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-success mt-3">Submit Test</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            {% if test.proctored %}
+<div class="card">
+    <div class="card-header bg-dark text-white">Proctoring</div>
+    <div class="card-body">
+        <video id="webcam" autoplay playsinline width="100%"></video>
+        <p class="small text-muted mt-2">Webcam is recording video for proctoring.</p>
+        <div id="recordingStatus" class="small text-success">Recording...</div>
+    </div>
+</div>
+{% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Proctoring video recording (instead of snapshots)
+{% if test.proctored %}
+let mediaRecorder;
+let recordedChunks = [];
+let chunkInterval;
+
+navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(stream => {
+        let video = document.getElementById("webcam");
+        video.srcObject = stream;
+        // Start recording
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+                // Send chunk to server every 3 seconds
+                sendChunk(event.data);
+            }
+        };
+        mediaRecorder.start(3000); // collect data every 3 seconds
+    })
+    .catch(err => console.error("Webcam error:", err));
+
+function sendChunk(blob) {
+    let reader = new FileReader();
+    reader.onloadend = function() {
+        let base64data = reader.result.split(',')[1];
+        fetch('/upload-proctoring-video', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                token: '{{ proctor_token }}',
+                chunk: base64data,
+                assignment_id: '{{ assignment._id }}',
+                chunk_index: 0,   // not tracking index for simplicity; better to track
+                total_chunks: 1
+            })
+        });
+    };
+    reader.readAsDataURL(blob);
+}
+
+// Stop recording when test is submitted (optional)
+window.addEventListener('beforeunload', () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+});
+{% endif %}
+</script>
+{% endblock %}
