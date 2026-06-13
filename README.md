@@ -1,2 +1,0 @@
-# CrackIt
-CrackIt - Mastery Hub 
