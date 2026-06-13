@@ -1,0 +1,7 @@
+Flask
+pymongo
+gunicorn
+Werkzeug
+dnspython
+Flask-Mail
+python-dotenv
