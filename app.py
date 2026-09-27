@@ -47,12 +47,24 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
+# ------------------ Time Helpers ------------------
+def now_utc():
+    return datetime.utcnow()
+
+def ist_to_utc(dt_ist):
+    return dt_ist - timedelta(hours=5, minutes=30)
+
+def utc_to_ist(dt_utc):
+    return dt_utc + timedelta(hours=5, minutes=30)
+
+
+# ------------------ Helpers ------------------
 def ensure_company_exists(company_name, is_private=True):
     if not companies_collection.find_one({"name": company_name}):
         companies_collection.insert_one({
             "name": company_name,
             "is_private": is_private,
-            "created_at": datetime.utcnow()
+            "created_at": now_utc()
         })
 
 
@@ -126,6 +138,11 @@ def merge_video_chunks(token):
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+@app.route("/health")
+def health():
+    return "OK", 200
 
 
 @app.route("/student-login", methods=["GET", "POST"])
@@ -251,7 +268,7 @@ def student_dashboard():
         "recorded_link": {"$ne": None}
     }).sort("scheduled_time", -1))
 
-    now = datetime.utcnow()
+    now = now_utc()
     assignments = list(test_assignments_collection.find({"student_email": session["username"]}))
     assigned_tests = []
     for assign in assignments:
@@ -268,7 +285,7 @@ def student_dashboard():
                 "test_id": test["_id"],
                 "name": test["name"],
                 "description": test["description"],
-                "start_time": test["start_time"],
+                "start_time": utc_to_ist(test["start_time"]),
                 "duration": test["duration"],
                 "status": status,
                 "result_published": assign.get("result_published", False)
@@ -307,21 +324,25 @@ def student_tests():
         return redirect(url_for("dashboard"))
     assignments = list(test_assignments_collection.find({"student_email": session["username"]}))
     tests_data = []
-    now = datetime.now()
+    now = now_utc()
     for assign in assignments:
         test = tests_collection.find_one({"_id": assign["test_id"]})
         if test:
             status = assign.get("status", "not_started")
             can_start = (status == "not_started" and now >= test["start_time"])
+            test_copy = dict(test)
+            if test_copy.get("start_time"):
+                test_copy["start_time"] = utc_to_ist(test_copy["start_time"])
             tests_data.append({
                 "assignment_id": assign["_id"],
-                "test": test,
+                "test": test_copy,
                 "status": status,
                 "can_start": can_start,
                 "result_published": assign.get("result_published", False),
                 "score": assign.get("score")
             })
     return render_template("student_tests.html", tests=tests_data, now=now)
+
 
 @app.route("/student/meetings")
 @login_required
@@ -405,10 +426,52 @@ def add_question():
             "category": category or "General",
             "difficulty": difficulty or "Medium",
             "question": question.strip(),
-            "created_at": datetime.utcnow()
+            "created_at": now_utc()
         })
         return redirect(url_for("add_question"))
     return render_template("add_question.html", companies=companies)
+
+
+@app.route("/add-bulk-questions", methods=["GET", "POST"])
+@admin_required
+def add_bulk_questions():
+    companies = list(companies_collection.find())
+    if request.method == "POST":
+        question_texts = request.form.getlist("question_text")
+        categories = request.form.getlist("category")
+        difficulties = request.form.getlist("difficulty")
+        companies_list = request.form.getlist("company_name")
+        new_company = request.form.get("new_company", "").strip().upper()
+
+        if new_company:
+            ensure_company_exists(new_company, True)
+            company_to_use = new_company
+        else:
+            company_to_use = None
+
+        inserted = 0
+        for i, q_text in enumerate(question_texts):
+            if not q_text.strip():
+                continue
+            row_company = companies_list[i] if i < len(companies_list) and companies_list[i] else company_to_use
+            if not row_company:
+                continue
+            row_company = row_company.upper()
+            category = categories[i] if i < len(categories) else "Technical"
+            difficulty = difficulties[i] if i < len(difficulties) else "Medium"
+            questions_collection.insert_one({
+                "company": row_company,
+                "category": category.strip() or "General",
+                "difficulty": difficulty,
+                "question": q_text.strip(),
+                "created_at": now_utc()
+            })
+            inserted += 1
+
+        flash(f"Added {inserted} question(s).")
+        return redirect(url_for("question_bank"))
+
+    return render_template("add_bulk_questions.html", companies=companies)
 
 
 @app.route("/edit-question/<id>", methods=["GET", "POST"])
@@ -491,7 +554,7 @@ def admin_schedule_class():
         classes_collection.insert_one({
             "title": title, "description": description, "scheduled_time": scheduled_time,
             "join_link": join_link, "recorded_link": None, "assigned_students": selected_students,
-            "status": "upcoming", "created_by": session["username"], "created_at": datetime.utcnow()
+            "status": "upcoming", "created_by": session["username"], "created_at": now_utc()
         })
         flash("Class scheduled successfully!")
         return redirect(url_for("admin_manage_classes"))
@@ -553,7 +616,7 @@ def admin_bulk_create_users():
             users_collection.insert_one({
                 "username": email, "password": hashed, "plain_password": default_password, "role": role,
                 "section": section if role == "student" else None, "assigned_companies": [],
-                "personal_details": None, "created_at": datetime.utcnow()
+                "personal_details": None, "created_at": now_utc()
             })
             created += 1
         flash(f"Created {created} users. Errors: {len(errors)}")
@@ -614,12 +677,16 @@ def send_passkey():
     passkey = ''.join(random.choices(string.digits, k=6))
     session["mapping_passkey"] = passkey
     try:
+        print(f"[PASSKEY] Sending to: {admin_email}")
+        print(f"[PASSKEY] Code: {passkey}")
         msg = Message("Your mapping passkey", recipients=[admin_email])
         msg.body = f"Your verification passkey is: {passkey}"
         mail.send(msg)
-        return jsonify({"success": True})
+        print("[PASSKEY] Sent successfully")
+        return jsonify({"success": True, "passkey": passkey})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"[PASSKEY ERROR] {type(e).__name__}: {e}")
+        return jsonify({"error": str(e), "passkey": passkey}), 500
 
 
 @app.route("/admin/verify-passkey", methods=["POST"])
@@ -656,7 +723,7 @@ def admin_mapping():
                 hashed = generate_password_hash(default_password)
                 users_collection.insert_one({
                     "username": email, "password": hashed, "plain_password": default_password, "role": "student",
-                    "assigned_companies": selected_courses, "personal_details": None, "created_at": datetime.utcnow()
+                    "assigned_companies": selected_courses, "personal_details": None, "created_at": now_utc()
                 })
         flash(f"Mapped {len(emails)} student(s) to courses.")
         session.pop("mapping_verified", None)
@@ -669,6 +736,9 @@ def admin_mapping():
 @super_admin_required
 def admin_tests():
     tests = list(tests_collection.find().sort("created_at", -1))
+    for t in tests:
+        if t.get("start_time"):
+            t["start_time"] = utc_to_ist(t["start_time"])
     return render_template("admin_tests.html", tests=tests)
 
 
@@ -715,7 +785,8 @@ def admin_create_test():
             return redirect(url_for("admin_create_test"))
 
         try:
-            start_dt_utc = datetime.fromisoformat(start_datetime)
+            start_dt_ist = datetime.fromisoformat(start_datetime)
+            start_dt_utc = ist_to_utc(start_dt_ist)
         except Exception as e:
             flash(f"Invalid start time: {e}")
             return redirect(url_for("admin_create_test"))
@@ -733,7 +804,7 @@ def admin_create_test():
             "num_questions_per_student": num_per_student,
             "shuffle": shuffle,
             "status": "upcoming",
-            "created_at": datetime.utcnow()
+            "created_at": now_utc()
         }).inserted_id
 
         for student_email in selected_students:
@@ -783,8 +854,8 @@ def admin_edit_test(test_id):
         flash("Cannot edit test that has already started or completed.")
         return redirect(url_for("admin_tests"))
     if request.method == "POST":
-        start_dt_local = datetime.fromisoformat(request.form.get("start_datetime"))
-        start_dt_utc = start_dt_local - timedelta(hours=5, minutes=30)
+        start_dt_ist = datetime.fromisoformat(request.form.get("start_datetime"))
+        start_dt_utc = ist_to_utc(start_dt_ist)
         update_data = {
             "name": request.form.get("test_name"),
             "description": request.form.get("description"),
@@ -800,6 +871,8 @@ def admin_edit_test(test_id):
         return redirect(url_for("admin_tests"))
     students = list(users_collection.find({"role": "student"}))
     questions = list(questions_collection.find())
+    if test.get("start_time"):
+        test["start_time"] = utc_to_ist(test["start_time"])
     return render_template("admin_edit_test.html", test=test, students=students, questions=questions)
 
 
@@ -887,9 +960,9 @@ def start_test(assignment_id):
         flash("Test not found.")
         return redirect(url_for("student_tests"))
 
-    now = datetime.now()
+    now = now_utc()
     if now < test["start_time"]:
-        flash(f"Test has not started yet. Scheduled for {test['start_time'].strftime('%Y-%m-%d %H:%M')}.")
+        flash(f"Test has not started yet. Scheduled for {utc_to_ist(test['start_time']).strftime('%Y-%m-%d %H:%M')}.")
         return redirect(url_for("student_tests"))
 
     if assignment.get("status") == "completed":
@@ -907,6 +980,8 @@ def start_test(assignment_id):
         )
 
     return redirect(url_for("take_test", assignment_id=assignment_id))
+
+
 @app.route("/take-test/<assignment_id>")
 @login_required
 def take_test(assignment_id):
@@ -918,7 +993,7 @@ def take_test(assignment_id):
     if not test:
         flash("Test not found.")
         return redirect(url_for("student_tests"))
-    now = datetime.now()
+    now = now_utc()
     if now < test["start_time"]:
         flash("Test has not started yet.")
         return redirect(url_for("student_tests"))
@@ -947,7 +1022,7 @@ def take_test(assignment_id):
         proctor_token = str(uuid.uuid4())
         proctoring_data_collection.insert_one({
             "assignment_id": assignment_id, "token": proctor_token,
-            "video_chunks": [], "started_at": datetime.utcnow()
+            "video_chunks": [], "started_at": now_utc()
         })
     return render_template("take_test.html", assignment=assignment, test=test,
                            questions=questions, proctor_token=proctor_token, now=now.isoformat())
@@ -972,7 +1047,7 @@ def submit_test(assignment_id):
         merge_video_chunks(proctoring["token"])
     test_assignments_collection.update_one(
         {"_id": ObjectId(assignment_id)},
-        {"$set": {"answers": answers, "score": total_score, "submitted_at": datetime.utcnow(), "status": "completed"}}
+        {"$set": {"answers": answers, "score": total_score, "submitted_at": now_utc(), "status": "completed"}}
     )
     return redirect(url_for("student_dashboard"))
 
@@ -1007,7 +1082,7 @@ def upload_proctoring_video():
             "assignment_id": assignment_id,
             "video_chunks": [],
             "video_filename": None,
-            "started_at": datetime.utcnow()
+            "started_at": now_utc()
         }).inserted_id
     else:
         proctor_id = proctor["_id"]
@@ -1067,16 +1142,6 @@ def init_companies():
             companies_collection.insert_one({"name": c, "is_private": True})
     return "Companies initialized."
 
-@app.route("/debug/times")
-@login_required
-def debug_times():
-    now = datetime.now()
-    out = [f"Server now: {now}"]
-    for a in test_assignments_collection.find({"student_email": session["username"]}):
-        t = tests_collection.find_one({"_id": a["test_id"]})
-        if t:
-            out.append(f"Test: {t['name']} | start_time: {t['start_time']} | now >= start: {now >= t['start_time']} | status: {a.get('status')}")
-    return "<br>".join(out)
 
 if __name__ == "__main__":
     app.run(debug=True)
