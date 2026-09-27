@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{{ test.name }} — Instructions</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Duration:</strong> {{ test.duration }} minutes</div>
+                <div class="col-md-6"><strong>Proctored:</strong> {{ 'Yes (webcam required)' if test.proctored else 'No' }}</div>
+            </div>
+
+            {% if test.description %}
+            <div class="mb-3">
+                <h5>Description</h5>
+                <pre class="instructions-box">{{ test.description }}</pre>
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <h5>Instructions</h5>
+                {% if test.instructions %}
+                    <pre class="instructions-box">{{ test.instructions }}</pre>
+                {% else %}
+                    <p class="text-muted">No specific instructions provided.</p>
+                {% endif %}
+            </div>
+
+            {% if test.proctored %}
+            <div class="alert alert-warning">
+                <strong>⚠ Proctored Test:</strong> Your webcam will record during the entire test. Make sure your camera is working and you remain visible.
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('begin_test', assignment_id=assignment._id) }}">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="ack" required
+                           onchange="document.getElementById('beginBtn').disabled = !this.checked">
+                    <label class="form-check-label" for="ack">
+                        I have read and understood all the instructions above.
+                    </label>
+                </div>
+                <button type="submit" id="beginBtn" class="btn btn-success btn-lg" disabled>
+                    <i class="bi bi-play-circle me-2"></i>Begin Test
+                </button>
+                <a href="{{ url_for('student_tests') }}" class="btn btn-secondary btn-lg">Cancel</a>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.instructions-box {
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 1rem;
+    margin: 0;
+}
+</style>
+{% endblock %}

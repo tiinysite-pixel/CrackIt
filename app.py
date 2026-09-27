@@ -943,6 +943,50 @@ def admin_view_student_test(assignment_id):
                            question_details=question_details, proctor_video=proctor_video)
 
 
+@app.route("/test-lobby/<assignment_id>")
+@login_required
+def test_lobby(assignment_id):
+    assignment = test_assignments_collection.find_one({
+        "_id": ObjectId(assignment_id),
+        "student_email": session["username"]
+    })
+    if not assignment:
+        flash("Assignment not found.")
+        return redirect(url_for("student_tests"))
+    test = tests_collection.find_one({"_id": assignment["test_id"]})
+    if not test:
+        flash("Test not found.")
+        return redirect(url_for("student_tests"))
+    if assignment.get("status") == "completed":
+        flash("You have already completed this test.")
+        return redirect(url_for("student_tests"))
+    return render_template("test_lobby.html", assignment=assignment, test=test)
+
+
+@app.route("/begin-test/<assignment_id>", methods=["POST"])
+@login_required
+def begin_test(assignment_id):
+    assignment = test_assignments_collection.find_one({
+        "_id": ObjectId(assignment_id),
+        "student_email": session["username"]
+    })
+    if not assignment:
+        flash("Assignment not found.")
+        return redirect(url_for("student_tests"))
+    test_assignments_collection.update_one(
+        {"_id": ObjectId(assignment_id)},
+        {"$set": {
+            "acknowledged_at": now_utc(),
+            "started_at": now_utc(),
+            "status": "in_progress"
+        }}
+    )
+    return redirect(url_for("take_test", assignment_id=assignment_id))
+
+
+
+
+
 # ------------------ Student Test Taking ------------------
 @app.route("/start-test/<assignment_id>")
 @login_required
@@ -973,13 +1017,14 @@ def start_test(assignment_id):
         flash("No questions assigned to you. Contact admin.")
         return redirect(url_for("student_tests"))
 
-    if assignment.get("status") != "in_progress":
-        test_assignments_collection.update_one(
-            {"_id": ObjectId(assignment_id)},
-            {"$set": {"status": "in_progress", "started_at": now}}
-        )
+    test_assignments_collection.update_one(
+        {"_id": ObjectId(assignment_id)},
+        {"$set": {"status": "in_progress"}}
+    )
 
-    return redirect(url_for("take_test", assignment_id=assignment_id))
+    return redirect(url_for("test_lobby", assignment_id=assignment_id))
+
+
 
 
 @app.route("/take-test/<assignment_id>")
@@ -1000,6 +1045,8 @@ def take_test(assignment_id):
     if assignment["status"] == "completed":
         flash("You have already submitted this test.")
         return redirect(url_for("student_tests"))
+    if not assignment.get("acknowledged_at"):
+        return redirect(url_for("test_lobby", assignment_id=assignment_id))
     questions = []
     for q in assignment.get("questions", []):
         try:
@@ -1026,6 +1073,10 @@ def take_test(assignment_id):
         })
     return render_template("take_test.html", assignment=assignment, test=test,
                            questions=questions, proctor_token=proctor_token, now=now.isoformat())
+
+
+
+
 
 
 @app.route("/submit-test/<assignment_id>", methods=["POST"])

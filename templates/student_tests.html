@@ -21,7 +21,7 @@
                     {% endif %}
 
                 {% elif t.status == 'in_progress' %}
-                    <a href="{{ url_for('take_test', assignment_id=t.assignment_id) }}" class="btn btn-warning">Resume</a>
+    <a href="{{ url_for('test_lobby', assignment_id=t.assignment_id) }}" class="btn btn-warning">Resume</a>
 
                 {% elif t.status == 'completed' %}
                     {% if t.result_published %}

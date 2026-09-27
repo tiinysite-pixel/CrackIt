@@ -6,6 +6,17 @@
     .code-editor { font-family: monospace; width: 100%; height: 200px; }
     pre { background: #f4f4f4; padding: 8px; border-radius: 5px; overflow-x: auto; }
     .sticky-top-custom { position: sticky; top: 20px; }
+    .question-text {
+        white-space: pre-wrap;
+        font-family: inherit;
+        font-size: 1rem;
+        margin: 0 0 1rem 0;
+        background: transparent;
+        border: none;
+        padding: 0;
+        color: inherit;
+        line-height: 1.6;
+    }
 </style>
 
 <div class="container-fluid mt-3">
@@ -26,7 +37,7 @@
                         {% if q.type == 'fill' %}<span class="badge bg-secondary">Fill in the blank</span>{% endif %}
                     </div>
                     <div class="card-body">
-                        <p>{{ q.question|safe }}</p>
+                        <pre class="question-text">{{ q.question }}</pre>
 
                         {% if q.type == 'mcq' %}
                             {% if q.options %}
