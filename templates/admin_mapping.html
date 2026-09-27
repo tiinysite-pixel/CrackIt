@@ -47,28 +47,38 @@
 <script>
 function filterCourses() {
     let searchTerm = document.getElementById("courseSearch").value.toLowerCase();
-    let items = document.querySelectorAll(".course-item");
-    items.forEach(item => {
+    document.querySelectorAll(".course-item").forEach(item => {
         let name = item.getAttribute("data-course-name");
         item.style.display = name.includes(searchTerm) ? "flex" : "none";
     });
 }
-let verified = false;
 document.getElementById('sendKeyBtn').onclick = () => {
-    fetch('/admin/send-passkey', {method:'POST'}).then(res=>res.json()).then(data=>{
-        alert(data.success ? 'Passkey sent to admin email' : 'Error: '+data.error);
+    fetch('/admin/send-passkey', {method:'POST'})
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('passkey').value = data.passkey;
+            document.getElementById('verifyStatus').innerHTML =
+                '<span class="text-primary fw-bold">Passkey: ' + data.passkey + ' (auto-filled)</span>';
+        } else {
+            alert('Error: ' + data.error);
+        }
     });
 };
 document.getElementById('verifyBtn').onclick = () => {
-    let key = document.getElementById('passkey').value;
-    fetch('/admin/verify-passkey', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({passkey:key})})
-    .then(res=>res.json()).then(data=>{
+    let key = document.getElementById('passkey').value.trim();
+    fetch('/admin/verify-passkey', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({passkey:key})
+    })
+    .then(res => res.json())
+    .then(data => {
         if(data.success){
-            verified = true;
             document.getElementById('verifyStatus').innerHTML = '<span class="text-success">✓ Verified</span>';
             document.getElementById('submitBtn').disabled = false;
         } else {
-            alert('Invalid passkey');
+            alert('Invalid passkey. Click "Send Passkey" again.');
         }
     });
 };

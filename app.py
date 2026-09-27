@@ -42,9 +42,11 @@ tests_collection = db["tests"]
 test_assignments_collection = db["test_assignments"]
 proctoring_data_collection = db["proctoring_data"]
 
-UPLOAD_FOLDER = 'static/proctoring_videos'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'proctoring_videos')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+print(f"[INIT] Upload folder: {UPLOAD_FOLDER}")
 
 
 # ------------------ Time Helpers ------------------
@@ -140,9 +142,9 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/health")
-def health():
-    return "OK", 200
+# @app.route("/health")
+# def health():
+#     return "OK", 200
 
 
 @app.route("/student-login", methods=["GET", "POST"])
@@ -672,21 +674,22 @@ def admin_delete_user(user_id):
 @super_admin_required
 def send_passkey():
     admin_email = os.environ.get("ADMIN_EMAIL")
-    if not admin_email:
-        return jsonify({"error": "ADMIN_EMAIL not configured"}), 500
     passkey = ''.join(random.choices(string.digits, k=6))
     session["mapping_passkey"] = passkey
-    try:
-        print(f"[PASSKEY] Sending to: {admin_email}")
-        print(f"[PASSKEY] Code: {passkey}")
-        msg = Message("Your mapping passkey", recipients=[admin_email])
-        msg.body = f"Your verification passkey is: {passkey}"
-        mail.send(msg)
-        print("[PASSKEY] Sent successfully")
-        return jsonify({"success": True, "passkey": passkey})
-    except Exception as e:
-        print(f"[PASSKEY ERROR] {type(e).__name__}: {e}")
-        return jsonify({"error": str(e), "passkey": passkey}), 500
+    session.modified = True
+    print(f"[PASSKEY] {passkey}")
+
+    if admin_email:
+        try:
+            msg = Message("Your mapping passkey", recipients=[admin_email])
+            msg.body = f"Your verification passkey is: {passkey}"
+            mail.send(msg)
+        except Exception as e:
+            print(f"[PASSKEY EMAIL ERROR] {e}")
+
+    return jsonify({"success": True, "passkey": passkey})
+
+
 
 
 @app.route("/admin/verify-passkey", methods=["POST"])
@@ -934,13 +937,16 @@ def admin_view_student_test(assignment_id):
                     "marks": marks,
                     "correct_answer": correct
                 }
-    proctor_video = None
+        proctor_video = None
     proctor_data = proctoring_data_collection.find_one({"assignment_id": assignment_id})
-    if proctor_data and proctor_data.get("video_filename"):
-        proctor_video = proctor_data["video_filename"]
+    if proctor_data and (proctor_data.get("video_b64") or proctor_data.get("chunks_db")):
+        proctor_video = url_for("proctoring_video", assignment_id=assignment_id)
     return render_template("admin_view_student_test.html",
                            assignment=assignment, test=test, student_email=student_email,
                            question_details=question_details, proctor_video=proctor_video)
+
+
+
 
 
 @app.route("/test-lobby/<assignment_id>")
@@ -1093,14 +1099,13 @@ def submit_test(assignment_id):
         score = evaluate_question(qid, user_answer)
         total_score += score
         answers.append({"question_id": qid, "answer": user_answer, "score": score})
-    proctoring = proctoring_data_collection.find_one({"assignment_id": assignment_id})
-    if proctoring and proctoring.get("token"):
-        merge_video_chunks(proctoring["token"])
     test_assignments_collection.update_one(
         {"_id": ObjectId(assignment_id)},
         {"$set": {"answers": answers, "score": total_score, "submitted_at": now_utc(), "status": "completed"}}
     )
     return redirect(url_for("student_dashboard"))
+
+
 
 
 @app.route("/view-test-result/<test_id>")
@@ -1116,59 +1121,57 @@ def view_test_result(test_id):
 @app.route("/upload-proctoring-video", methods=["POST"])
 @login_required
 def upload_proctoring_video():
-    data = request.get_json()
-    token = data.get("token")
-    assignment_id = data.get("assignment_id")
-    done = data.get("done", False)
-    chunk = data.get("chunk")
-    chunk_index = data.get("chunk_index", 0)
+    try:
+        data = request.get_json()
+        token = data.get("token")
+        assignment_id = data.get("assignment_id")
+        done = data.get("done", False)
+        chunk = data.get("chunk")
+        chunk_index = data.get("chunk_index", 0)
 
-    if not token or not assignment_id:
-        return jsonify({"error": "Missing token/assignment"}), 400
+        if not token or not assignment_id:
+            return jsonify({"error": "Missing token"}), 400
 
-    proctor = proctoring_data_collection.find_one({"token": token})
-    if not proctor:
-        proctor_id = proctoring_data_collection.insert_one({
-            "token": token,
-            "assignment_id": assignment_id,
-            "video_chunks": [],
-            "video_filename": None,
-            "started_at": now_utc()
-        }).inserted_id
-    else:
-        proctor_id = proctor["_id"]
+        proctor = proctoring_data_collection.find_one({"token": token})
+        if not proctor:
+            proctor_id = proctoring_data_collection.insert_one({
+                "token": token,
+                "assignment_id": assignment_id,
+                "chunks_db": [],
+                "video_b64": None,
+                "started_at": now_utc()
+            }).inserted_id
+        else:
+            proctor_id = proctor["_id"]
 
-    if chunk:
-        chunk_data = base64.b64decode(chunk)
-        filename = f"{token}_{int(chunk_index):05d}.webm"
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        with open(path, "wb") as f:
-            f.write(chunk_data)
-        proctoring_data_collection.update_one(
-            {"_id": proctor_id},
-            {"$addToSet": {"video_chunks": filename}}
-        )
-
-    if done:
-        proctor = proctoring_data_collection.find_one({"_id": proctor_id})
-        chunks = sorted(proctor.get("video_chunks", []))
-        if chunks:
-            final_name = f"{token}_full.webm"
-            final_path = os.path.join(app.config['UPLOAD_FOLDER'], final_name)
-            with open(final_path, "wb") as out:
-                for name in chunks:
-                    p = os.path.join(app.config['UPLOAD_FOLDER'], name)
-                    if os.path.exists(p):
-                        with open(p, "rb") as f:
-                            out.write(f.read())
-                        os.remove(p)
+        if chunk:
             proctoring_data_collection.update_one(
                 {"_id": proctor_id},
-                {"$set": {"video_filename": final_name}}
+                {"$push": {"chunks_db": {"index": int(chunk_index), "data": chunk}}}
             )
-        return jsonify({"status": "merged", "chunks": len(chunks)})
+            print(f"[VIDEO] chunk {chunk_index} stored ({len(chunk)} b64 chars)")
 
-    return jsonify({"status": "ok"})
+        if done:
+            proctor = proctoring_data_collection.find_one({"_id": proctor_id})
+            chunks_list = proctor.get("chunks_db", [])
+            chunks_list.sort(key=lambda c: c["index"])
+            merged = "".join(c["data"] for c in chunks_list)
+            proctoring_data_collection.update_one(
+                {"_id": proctor_id},
+                {"$set": {"video_b64": merged, "chunks_db": []}}
+            )
+            print(f"[VIDEO] MERGED {len(chunks_list)} chunks → {len(merged)} b64 chars")
+            return jsonify({"status": "merged", "chunks": len(chunks_list)})
+
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        print(f"[VIDEO ERROR] {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
 
 
 @app.route("/run_code", methods=["POST"])
@@ -1192,6 +1195,42 @@ def init_companies():
         if not companies_collection.find_one({"name": c}):
             companies_collection.insert_one({"name": c, "is_private": True})
     return "Companies initialized."
+
+
+@app.route("/health")
+def health():
+    return "OK", 200
+
+
+@app.route("/proctoring-video/<assignment_id>")
+@super_admin_required
+def proctoring_video(assignment_id):
+    proctor = proctoring_data_collection.find_one({"assignment_id": assignment_id})
+    if not proctor:
+        return "No recording", 404
+
+    video_b64 = proctor.get("video_b64")
+    if not video_b64:
+        # Fallback: try merging chunks on the fly
+        chunks_list = proctor.get("chunks_db", [])
+        if not chunks_list:
+            return "No recording", 404
+        chunks_list.sort(key=lambda c: c.get("index", 0))
+        video_b64 = "".join(c.get("data", "") for c in chunks_list)
+        proctoring_data_collection.update_one(
+            {"_id": proctor["_id"]},
+            {"$set": {"video_b64": video_b64, "chunks_db": []}}
+        )
+
+    try:
+        video_bytes = base64.b64decode(video_b64)
+    except Exception as e:
+        return f"Decode error: {e}", 500
+
+    from flask import Response
+    return Response(video_bytes, mimetype="video/webm",
+                    headers={"Content-Disposition": "inline"})
+
 
 
 if __name__ == "__main__":

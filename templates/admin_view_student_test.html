@@ -33,14 +33,15 @@
         </div>
 
         <h5 class="mt-4">Proctoring Recording</h5>
-        {% if proctor_video %}
-            <video width="100%" controls>
-                <source src="{{ url_for('static', filename='proctoring_videos/' + proctor_video) }}" type="video/webm">
-                Your browser does not support video playback.
-            </video>
-        {% else %}
-            <div class="alert alert-warning">No proctoring video available.</div>
-        {% endif %}
+{% if proctor_video %}
+    <video width="100%" controls style="border-radius: 8px; background: #000; min-height: 200px;">
+        <source src="{{ proctor_video }}" type="video/webm">
+        Your browser does not support video playback.
+    </video>
+    <p class="text-muted mt-2"><small>If the video doesn't play, the recording is still processing — refresh in 30 seconds.</small></p>
+{% else %}
+    <div class="alert alert-warning">No proctoring video available.</div>
+{% endif %}
     </div>
     <div class="card-footer">
         <a href="{{ url_for('admin_test_results', test_id=test._id) }}" class="btn btn-secondary">Back to Results</a>
