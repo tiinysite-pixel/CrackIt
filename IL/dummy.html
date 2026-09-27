@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consumer Registration</title>
+  <!-- Bootstrap 5 + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Google Font (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+  <style>
+    /* ----- RESET & BODY (Neumorphic background) ----- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e0e5ec;
+      padding: 2rem 1.5rem;
+      margin: 0;
+    }
+
+    /* ----- MAIN WRAPPER ----- */
+    .register-wrapper {
+      max-width: 760px;
+      width: 100%;
+    }
+
+    /* ----- HEADER (slightly raised) ----- */
+    .page-header {
+      margin-bottom: 2rem;
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .page-header h2 {
+      font-weight: 700;
+      font-size: 1.8rem;
+      color: #2d3a4a;
+      letter-spacing: -0.3px;
+      text-shadow: 0 2px 4px rgba(255,255,255,0.6);
+    }
+    .page-header p {
+      color: #5a6b7c;
+      font-size: 0.95rem;
+      margin-top: 0.2rem;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+    }
+
+    /* ----- NEUMORPHIC CARDS ----- */
+    .section-card {
+      background: #e0e5ec;
+      border-radius: 28px;
+      padding: 1.8rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 
+        8px 8px 16px #b8bec6,
+        -8px -8px 16px #ffffff;
+      transition: all 0.2s ease;
+    }
+    .section-card:hover {
+      box-shadow: 
+        6px 6px 12px #b8bec6,
+        -6px -6px 12px #ffffff;
+    }
+    .section-card .card-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: #2d3a4a;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid rgba(0,0,0,0.04);
+      text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+    }
+    .section-card .card-title i {
+      color: #4f7afc;
+      font-size: 1.2rem;
+    }
+
+    /* ----- SMALLER INPUTS (neumorphic inset) ----- */
+    .form-label {
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: #3d4a5a;
+      margin-bottom: 0.2rem;
+    }
+    .form-label .text-danger { font-weight: 600; }
+
+    .form-control, .form-select {
+      background: #e0e5ec;
+      border: none;
+      border-radius: 16px;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.9rem;
+      color: #1f2937;
+      box-shadow: 
+        inset 4px 4px 8px #b8bec6,
+        inset -4px -4px 8px #ffffff;
+      transition: all 0.2s ease;
+      height: 40px; /* tighter height */
+    }
+    textarea.form-control {
+      height: auto;
+      min-height: 70px;
+    }
+    .form-control:focus, .form-select:focus {
+      outline: none;
+      box-shadow: 
+        inset 3px 3px 6px #b8bec6,
+        inset -3px -3px 6px #ffffff,
+        0 0 0 3px rgba(79,122,252,0.15);
+      background: #e0e5ec;
+    }
+    .form-control.is-valid {
+      box-shadow: 
+        inset 4px 4px 8px #b8bec6,
+        inset -4px -4px 8px #ffffff,
+        0 0 0 2px #38a16940;
+    }
+    .form-control.is-invalid {
+      box-shadow: 
+        inset 4px 4px 8px #b8bec6,
+        inset -4px -4px 8px #ffffff,
+        0 0 0 2px #e53e3e40;
+    }
+    .form-control::placeholder {
+      color: #a0aec0;
+      font-weight: 300;
+    }
+
+    /* Input group (phone & password) */
+    .input-group .form-control {
+      border-radius: 16px 0 0 16px;
+    }
+    .input-group .form-select {
+      border-radius: 16px 0 0 16px;
+      border-right: none;
+    }
+    .input-group .btn-outline-secondary {
+      background: #e0e5ec;
+      border: none;
+      border-radius: 0 16px 16px 0;
+      box-shadow: 
+        inset 4px 4px 8px #b8bec6,
+        inset -4px -4px 8px #ffffff;
+      color: #4a5568;
+      height: 40px;
+      padding: 0 1rem;
+    }
+    .input-group .btn-outline-secondary:hover {
+      background: #d5dce6;
+    }
+    .input-group .btn-outline-secondary:focus {
+      box-shadow: inset 3px 3px 6px #b8bec6, inset -3px -3px 6px #ffffff;
+    }
+
+    /* ----- PASSWORD METER (neumorphic track) ----- */
+    .password-meter {
+      height: 6px;
+      background: #e0e5ec;
+      border-radius: 8px;
+      margin-top: 8px;
+      overflow: hidden;
+      box-shadow: inset 2px 2px 4px #b8bec6, inset -2px -2px 4px #ffffff;
+    }
+    .password-meter-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 8px;
+      transition: width 0.3s ease, background 0.3s ease;
+      background: #e53e3e;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    }
+
+    /* Requirements (inline) */
+    .requirement-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem 1rem;
+      margin-top: 0.3rem;
+    }
+    .requirement-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #6b7a8f;
+      transition: 0.2s;
+    }
+    .requirement-item i { font-size: 0.7rem; }
+    .req-valid { color: #38a169; }
+    .req-invalid { color: #a0aec0; }
+
+    /* ----- BUTTONS (neumorphic raised) ----- */
+    .btn-primary {
+      background: #e0e5ec;
+      border: none;
+      border-radius: 40px;
+      padding: 0.5rem 2rem;
+      font-weight: 600;
+      color: #2d3a4a;
+      box-shadow: 
+        6px 6px 12px #b8bec6,
+        -6px -6px 12px #ffffff;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+    .btn-primary:hover {
+      box-shadow: 
+        3px 3px 6px #b8bec6,
+        -3px -3px 6px #ffffff;
+      transform: translateY(-1px);
+      color: #1a2639;
+    }
+    .btn-primary:active {
+      box-shadow: 
+        inset 4px 4px 8px #b8bec6,
+        inset -4px -4px 8px #ffffff;
+    }
+    .btn-outline-secondary {
+      background: #e0e5ec;
+      border: none;
+      border-radius: 40px;
+      padding: 0.5rem 1.5rem;
+      color: #4a5568;
+      font-weight: 500;
+      box-shadow: 
+        6px 6px 12px #b8bec6,
+        -6px -6px 12px #ffffff;
+      transition: 0.2s;
+      font-size: 0.9rem;
+    }
+    .btn-outline-secondary:hover {
+      box-shadow: 
+        3px 3px 6px #b8bec6,
+        -3px -3px 6px #ffffff;
+    }
+
+    /* ----- MODAL (neumorphic) ----- */
+    .modal-content {
+      background: #e0e5ec;
+      border-radius: 32px;
+      border: none;
+      box-shadow: 
+        12px 12px 24px #b8bec6,
+        -12px -12px 24px #ffffff;
+    }
+    .modal-body .bg-soft {
+      background: #d5dce6;
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: inset 3px 3px 6px #b8bec6, inset -3px -3px 6px #ffffff;
+    }
+
+    /* ----- RESPONSIVE ----- */
+    @media (max-width: 576px) {
+      .section-card { padding: 1.5rem 1.2rem; }
+      .btn-primary { width: 100%; }
+      .form-control { height: 38px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="register-wrapper">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h2><i class="bi bi-person-plus-fill me-2" style="color:#4f7afc;"></i>Create Account</h2>
+    <p>Fill in your details – all fields are required</p>
+  </div>
+
+  <form id="registrationForm" novalidate>
+
+    <!-- CARD 1: Personal Information -->
+    <div class="section-card">
+      <div class="card-title"><i class="bi bi-person-badge"></i> Personal Information</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label for="customerName" class="form-label">Full Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="customerName" maxlength="50" placeholder="e.g., John Doe" required />
+          <div class="d-flex justify-content-between mt-1">
+            <span class="form-text" style="font-size:0.75rem;color:#6b7a8f;">Required, max 50 chars.</span>
+            <span class="form-text text-end" style="font-size:0.75rem;color:#6b7a8f;"><span id="nameCounter">0</span>/50</span>
+          </div>
+          <div class="invalid-feedback">Please enter your full name.</div>
+        </div>
+
+        <div class="col-12">
+          <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" id="email" placeholder="you@example.com" required />
+          <div class="valid-feedback">Looks good!</div>
+          <div class="invalid-feedback">Please enter a valid email.</div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <select class="form-select" id="countryCode" style="max-width:130px;">
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+91" selected>🇮🇳 +91</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+81">🇯🇵 +81</option>
+            </select>
+            <input type="tel" class="form-control" id="mobileNumber" placeholder="10-digit number" pattern="[0-9]{10}" maxlength="10" required />
+          </div>
+          <div class="invalid-feedback">Enter exactly 10 digits.</div>
+        </div>
+
+        <div class="col-12">
+          <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
+          <textarea class="form-control" id="address" rows="2" placeholder="Street, city, state, PIN" required></textarea>
+          <div class="invalid-feedback">Please provide your address.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: Account Details -->
+    <div class="section-card">
+      <div class="card-title"><i class="bi bi-shield-lock"></i> Account Details</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label for="customerId" class="form-label">Customer ID <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="customerId" minlength="5" maxlength="20" placeholder="5-20 alphanumeric characters" required />
+          <div class="form-text" style="font-size:0.75rem;color:#6b7a8f;">Must be 5–20 letters and numbers only.</div>
+          <div class="invalid-feedback">Customer ID must be 5-20 alphanumeric characters.</div>
+        </div>
+
+        <div class="col-12">
+          <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="password" maxlength="30" placeholder="Create a strong password" required />
+            <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn"><i class="bi bi-eye-slash"></i></button>
+          </div>
+          <div class="password-meter"><div class="password-meter-bar" id="passwordMeterBar"></div></div>
+          <div class="requirement-list" id="passwordRequirements">
+            <span id="reqLength" class="requirement-item req-invalid"><i class="bi bi-circle"></i> Max 30 chars</span>
+            <span id="reqUpper" class="requirement-item req-invalid"><i class="bi bi-circle"></i> Uppercase</span>
+            <span id="reqLower" class="requirement-item req-invalid"><i class="bi bi-circle"></i> Lowercase</span>
+            <span id="reqSpecial" class="requirement-item req-invalid"><i class="bi bi-circle"></i> Special char</span>
+            <span id="reqNumber" class="requirement-item req-invalid"><i class="bi bi-circle"></i> At least 1 number</span>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+          <input type="password" class="form-control" id="confirmPassword" maxlength="30" placeholder="Re-enter password" required />
+          <div class="invalid-feedback">Passwords do not match.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="d-flex flex-wrap gap-2 justify-content-end mt-2">
+      <button type="reset" class="btn btn-outline-secondary" id="resetBtn"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Register</button>
+    </div>
+  </form>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3">
+      <div class="modal-body text-center">
+        <i class="bi bi-check-circle-fill text-success" style="font-size:4rem;"></i>
+        <h4 class="text-success mt-3 fw-bold">Registration Successful!</h4>
+        <p class="text-muted mb-4">Your account has been created. Please save your User ID.</p>
+        <div class="bg-soft p-3 rounded-3 mb-3">
+          <label class="form-label fw-bold mb-1" style="color:#2d3a4a;">Your User ID</label>
+          <h2 class="fw-bold text-primary" id="generatedUserId">---</h2>
+        </div>
+        <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Proceed to Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  (function() {
+    'use strict';
+
+    const form = document.getElementById('registrationForm');
+    const nameInput = document.getElementById('customerName');
+    const nameCounter = document.getElementById('nameCounter');
+    const emailInput = document.getElementById('email');
+    const mobileInput = document.getElementById('mobileNumber');
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirmPassword');
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const meterBar = document.getElementById('passwordMeterBar');
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    const generatedIdSpan = document.getElementById('generatedUserId');
+
+    // Name counter
+    nameInput.addEventListener('input', function() {
+      const len = this.value.length;
+      nameCounter.textContent = len > 50 ? 50 : len;
+      if (len > 50) this.value = this.value.slice(0, 50);
+      validateField(this);
+    });
+
+    // Validators
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    function validateField(input) {
+      if (input.checkValidity()) {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+      } else {
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+      }
+    }
+
+    emailInput.addEventListener('input', function() {
+      if (this.value && !isValidEmail(this.value)) {
+        this.setCustomValidity('Invalid email');
+        this.classList.add('is-invalid');
+        this.classList.remove('is-valid');
+      } else {
+        this.setCustomValidity('');
+        if (this.value) validateField(this);
+      }
+    });
+
+    mobileInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      if (this.value.length !== 10) {
+        this.setCustomValidity('Invalid');
+        this.classList.add('is-invalid');
+        this.classList.remove('is-valid');
+      } else {
+        this.setCustomValidity('');
+        validateField(this);
+      }
+    });
+
+    // Password strength (5 checks now)
+    function checkPassword(password) {
+      const checks = {
+        length: password.length <= 30,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        special: /[^a-zA-Z0-9]/.test(password),
+        number: /[0-9]/.test(password)
+      };
+      const allValid = checks.length && checks.upper && checks.lower && checks.special && checks.number;
+
+      const items = [
+        document.getElementById('reqLength'),
+        document.getElementById('reqUpper'),
+        document.getElementById('reqLower'),
+        document.getElementById('reqSpecial'),
+        document.getElementById('reqNumber')
+      ];
+      const statuses = [checks.length, checks.upper, checks.lower, checks.special, checks.number];
+      items.forEach((el, idx) => {
+        const ok = statuses[idx];
+        el.className = 'requirement-item ' + (ok ? 'req-valid' : 'req-invalid');
+        el.querySelector('i').className = ok ? 'bi bi-check-circle-fill' : 'bi bi-circle';
+      });
+
+      // Meter: 5 checks => 20% each
+      let strength = 0;
+      if (checks.length) strength++;
+      if (checks.upper) strength++;
+      if (checks.lower) strength++;
+      if (checks.special) strength++;
+      if (checks.number) strength++;
+      const pct = (strength / 5) * 100;
+      meterBar.style.width = pct + '%';
+      if (pct <= 20) meterBar.style.background = '#e53e3e';
+      else if (pct <= 40) meterBar.style.background = '#ed8936';
+      else if (pct <= 60) meterBar.style.background = '#ecc94b';
+      else if (pct <= 80) meterBar.style.background = '#48bb78';
+      else meterBar.style.background = '#38a169';
+
+      return allValid;
+    }
+
+    passwordInput.addEventListener('input', function() {
+      const valid = checkPassword(this.value);
+      if (this.value && !valid) {
+        this.classList.add('is-invalid');
+        this.classList.remove('is-valid');
+        this.setCustomValidity('Invalid');
+      } else {
+        this.setCustomValidity('');
+        if (this.value) {
+          this.classList.remove('is-invalid');
+          this.classList.add('is-valid');
+        } else {
+          this.classList.remove('is-valid', 'is-invalid');
+        }
+      }
+      if (confirmInput.value) validateConfirm();
+    });
+
+    // Confirm password
+    function validateConfirm() {
+      const match = passwordInput.value === confirmInput.value && passwordInput.value !== '';
+      confirmInput.setCustomValidity(match ? '' : 'Invalid');
+      if (confirmInput.value && !match) {
+        confirmInput.classList.add('is-invalid');
+        confirmInput.classList.remove('is-valid');
+      } else if (confirmInput.value && match) {
+        confirmInput.classList.remove('is-invalid');
+        confirmInput.classList.add('is-valid');
+      } else {
+        confirmInput.classList.remove('is-valid', 'is-invalid');
+      }
+    }
+    confirmInput.addEventListener('input', validateConfirm);
+
+    // Toggle password visibility
+    toggleBtn.addEventListener('click', function() {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      const icon = this.querySelector('i');
+      icon.classList.toggle('bi-eye');
+      icon.classList.toggle('bi-eye-slash');
+    });
+
+    // Generate User ID
+    function generateUserId() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = 'USR-';
+      for (let i=0; i<8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    // Form submit
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      let valid = true;
+      const name = nameInput.value.trim();
+      const email = emailInput.value;
+      const mobile = mobileInput.value;
+      const address = document.getElementById('address').value.trim();
+      const cid = document.getElementById('customerId').value.trim();
+      const pwd = passwordInput.value;
+
+      if (!name) { nameInput.setCustomValidity('Required'); valid = false; } else { nameInput.setCustomValidity(''); }
+      if (!isValidEmail(email)) { emailInput.setCustomValidity('Invalid'); valid = false; } else { emailInput.setCustomValidity(''); }
+      if (mobile.length !== 10) { mobileInput.setCustomValidity('Invalid'); valid = false; } else { mobileInput.setCustomValidity(''); }
+      if (!address) { document.getElementById('address').setCustomValidity('Required'); valid = false; } else { document.getElementById('address').setCustomValidity(''); }
+      if (!/^[a-zA-Z0-9]{5,20}$/.test(cid)) { document.getElementById('customerId').setCustomValidity('Invalid'); valid = false; } else { document.getElementById('customerId').setCustomValidity(''); }
+      if (!checkPassword(pwd)) { valid = false; }
+      if (pwd !== confirmInput.value || !pwd) { confirmInput.setCustomValidity('Invalid'); valid = false; } else { confirmInput.setCustomValidity(''); }
+
+      form.querySelectorAll('.form-control, .form-select, textarea').forEach(el => {
+        if (el.checkValidity && !el.checkValidity()) {
+          el.classList.add('is-invalid');
+          el.classList.remove('is-valid');
+          valid = false;
+        } else if (el.value) {
+          el.classList.remove('is-invalid');
+          el.classList.add('is-valid');
+        }
+      });
+
+      if (!valid) {
+        form.classList.add('was-validated');
+        return;
+      }
+
+      const newId = generateUserId();
+      generatedIdSpan.textContent = newId;
+      successModal.show();
+
+      document.getElementById('successModal').addEventListener('hidden.bs.modal', function() {
+        form.reset();
+        form.classList.remove('was-validated');
+        document.querySelectorAll('.form-control, .form-select, textarea').forEach(el => {
+          el.classList.remove('is-valid', 'is-invalid');
+          el.setCustomValidity('');
+        });
+        nameCounter.textContent = '0';
+        meterBar.style.width = '0%';
+        document.querySelectorAll('.requirement-item').forEach(el => {
+          el.className = 'requirement-item req-invalid';
+          el.querySelector('i').className = 'bi bi-circle';
+        });
+        passwordInput.setAttribute('type', 'password');
+        const icon = toggleBtn.querySelector('i');
+        icon.className = 'bi bi-eye-slash';
+      }, { once: true });
+    });
+
+    // Reset button
+    resetBtn.addEventListener('click', function(e) {
+      if (!confirm('Are you sure you want to clear all fields?')) {
+        e.preventDefault();
+        return;
+      }
+      setTimeout(() => {
+        form.classList.remove('was-validated');
+        document.querySelectorAll('.form-control, .form-select, textarea').forEach(el => {
+          el.classList.remove('is-valid', 'is-invalid');
+          el.setCustomValidity('');
+        });
+        nameCounter.textContent = '0';
+        meterBar.style.width = '0%';
+        document.querySelectorAll('.requirement-item').forEach(el => {
+          el.className = 'requirement-item req-invalid';
+          el.querySelector('i').className = 'bi bi-circle';
+        });
+        passwordInput.setAttribute('type', 'password');
+        const icon = toggleBtn.querySelector('i');
+        icon.className = 'bi bi-eye-slash';
+      }, 10);
+    });
+
+  })();
+</script>
+</body>
+</html>

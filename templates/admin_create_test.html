@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Create New Test</h2>
+<form method="POST">
+
+    <div class="card mb-3">
+        <div class="card-header">Basic Details</div>
+        <div class="card-body">
+            <div class="mb-3"><label>Test Name</label><input type="text" name="test_name" class="form-control" required></div>
+            <div class="mb-3"><label>Description</label><textarea name="description" class="form-control"></textarea></div>
+            <div class="mb-3"><label><input type="checkbox" name="proctored"> Proctored (webcam required)</label></div>
+            <div class="mb-3">
+                <label>Start Date &amp; Time (IST)</label>
+                <input type="datetime-local" name="start_datetime" class="form-control" required>
+                <small class="text-muted">Enter time in IST (India Standard Time)</small>
+            </div>
+            <div class="mb-3"><label>Duration (minutes)</label><input type="number" name="duration" value="60" class="form-control" required></div>
+            <div class="mb-3"><label>Instructions</label><textarea name="instructions" class="form-control" rows="4"></textarea></div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Assign Students</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label>Select Sections (includes all students in those sections)</label>
+                <select name="selected_sections" multiple class="form-control" size="4">
+                    {% for sec in sections %}<option value="{{ sec }}">{{ sec }}</option>{% endfor %}
+                </select>
+                <small class="text-muted">Hold Ctrl / Cmd to select multiple.</small>
+            </div>
+            <div class="mb-3">
+                <label>Or select individual students</label>
+                <select name="selected_students" multiple class="form-control" size="6">
+                    {% for s in students %}
+                    <option value="{{ s.username }}">{{ s.username }}{% if s.section %} ({{ s.section }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Question Source</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_mode" value="specific" id="modeSpecific" checked onchange="toggleMode()">
+                    <label class="form-check-label" for="modeSpecific">Pick specific questions</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_mode" value="folder" id="modeFolder" onchange="toggleMode()">
+                    <label class="form-check-label" for="modeFolder">Pick from a folder / company</label>
+                </div>
+            </div>
+
+            <div id="specificDiv" class="mb-3">
+                <label>Select Questions</label>
+                <select name="specific_questions" multiple class="form-control" size="12">
+                    {% for q in questions %}
+                    <option value="{{ q._id }}">{{ q.company }} | {{ q.category or 'General' }} | {{ q.question[:60] }}...</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="folderDiv" class="mb-3" style="display:none;">
+                <label>Select Folders / Companies</label>
+                <select name="folder_companies" multiple class="form-control" size="8">
+                    {% for c in companies %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Number of questions per student</label>
+                <input type="number" name="num_questions_per_student" value="0" min="0" class="form-control">
+                <small class="text-muted">Set 0 to give all questions. Otherwise each student gets N random questions.</small>
+            </div>
+            <div class="mb-3"><label><input type="checkbox" name="shuffle" checked> Shuffle questions per student</label></div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Test</button>
+    <a href="{{ url_for('admin_tests') }}" class="btn btn-secondary">Cancel</a>
+</form>
+
+<script>
+function toggleMode() {
+    const mode = document.querySelector('input[name="question_mode"]:checked').value;
+    document.getElementById('specificDiv').style.display = mode === 'specific' ? 'block' : 'none';
+    document.getElementById('folderDiv').style.display = mode === 'folder' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

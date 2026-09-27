@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block admin_title %}Question Bank - Manage Companies & Questions{% endblock %}
+{% block content %}
+
+<!-- ==================== COMPANY MANAGEMENT SECTION ==================== -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-building me-2"></i>Manage Companies</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for company in companies_data %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="border rounded p-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>{{ company.name }}</strong>
+                        {% if company.is_private %}
+                            <span class="badge bg-secondary">Private</span>
+                        {% else %}
+                            <span class="badge bg-success">Public</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <!-- Rename form -->
+                        <form action="/edit-company/{{ company.name }}" method="POST" class="d-flex gap-1">
+                            <input type="text" name="new_name" class="form-control form-control-sm" placeholder="New name" required style="width: 100px;">
+                            <button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i> Rename</button>
+                        </form>
+                        <!-- Delete company -->
+                        <a href="/delete-company/{{ company.name }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete entire company and all its questions?');">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                        <!-- Toggle privacy -->
+                        <form action="/toggle-company-privacy/{{ company.name }}" method="POST">
+                            <button class="btn btn-sm {% if company.is_private %}btn-warning{% else %}btn-success{% endif %}" onclick="return confirm('Toggle privacy?');">
+                                {% if company.is_private %}<i class="fas fa-globe"></i> Make Public{% else %}<i class="fas fa-lock"></i> Make Private{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted">No companies found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ==================== QUESTION FILTER SECTION ==================== -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Questions</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Company</label>
+                <select name="company" class="form-select">
+                    <option value="">-- All Companies --</option>
+                    {% for company in companies_data %}
+                    <option value="{{ company.name }}" {% if company_filter == company.name %}selected{% endif %}>{{ company.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Difficulty</label>
+                <select name="difficulty" class="form-select">
+                    <option value="">-- All Difficulties --</option>
+                    <option value="Easy" {% if difficulty_filter == 'Easy' %}selected{% endif %}>Easy</option>
+                    <option value="Medium" {% if difficulty_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Hard" {% if difficulty_filter == 'Hard' %}selected{% endif %}>Hard</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Search Question Text</label>
+                <input type="text" name="search" class="form-control" placeholder="e.g., polymorphism, OOP..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-2"></i>Apply Filters</button>
+            </div>
+        </form>
+        <div class="mt-3">
+            <a href="{{ url_for('question_bank') }}" class="btn btn-link btn-sm">Clear all filters</a>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== QUESTIONS TABLE SECTION ==================== -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Questions ({{ questions|length }})</h5>
+        <a href="{{ url_for('add_question') }}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-2"></i>Add New Question
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Company</th>
+                        <th>Category</th>
+                        <th>Difficulty</th>
+                        <th>Question (preview)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in questions %}
+                    <tr>
+                        <td class="align-middle"><strong>{{ q.company }}</strong></td>
+                        <td class="align-middle">{{ q.category or 'General' }}</td>
+                        <td class="align-middle">
+                            <span class="badge 
+                                {% if q.difficulty == 'Easy' %}bg-success
+                                {% elif q.difficulty == 'Medium' %}bg-warning text-dark
+                                {% else %}bg-danger{% endif %}">
+                                {{ q.difficulty or 'Medium' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="max-height: 80px; overflow: hidden; text-overflow: ellipsis;">
+                                {{ q.question[:200] }}{% if q.question|length > 200 %}...{% endif %}
+                            </div>
+                            <small class="text-muted">{{ q.created_at.strftime('%Y-%m-%d %H:%M') if q.created_at else '' }}</small>
+                        </td>
+                        <td class="align-middle">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="/edit-question/{{ q._id }}" class="btn btn-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/delete-question/{{ q._id }}" class="btn btn-danger" onclick="return confirm('Delete this question?');" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            No questions found. <a href="{{ url_for('add_question') }}">Add your first question</a>.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

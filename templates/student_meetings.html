@@ -1,0 +1,38 @@
+{% extends "base_student.html" %}
+{% block student_title %}Meetings{% endblock %}
+{% block content %}
+<h4>Upcoming Meetings</h4>
+<div class="row">
+    {% for m in upcoming %}
+    <div class="col-md-6 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h5>{{ m.title }}</h5>
+                <p>{{ m.description }}</p>
+                <p><strong>Time:</strong> {{ m.scheduled_time }}</p>
+                <a href="{{ m.join_link }}" target="_blank" class="btn btn-primary">Join Meeting</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>No upcoming meetings.</p>
+    {% endfor %}
+</div>
+<h4 class="mt-4">Recorded Sessions</h4>
+<div class="row">
+    {% for m in completed %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5>{{ m.title }}</h5>
+                <p>{{ m.description }}</p>
+                <p><strong>Recorded on:</strong> {{ m.scheduled_time }}</p>
+                <a href="{{ m.recorded_link }}" target="_blank" class="btn btn-secondary">Watch Recording</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>No recorded sessions yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

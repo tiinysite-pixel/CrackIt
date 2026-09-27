@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-section text-center">
+    <h1 class="display-5 mb-3">CrackIt – Mastery Hub</h1>
+    <p class="lead">Company-Wise Technical Interview Preparation Portal</p>
+    <div class="mt-4">
+        <a href="{{ url_for('student_login') }}" class="btn btn-primary btn-lg me-3">Student Login</a>
+        <a href="{{ url_for('admin_login') }}" class="btn btn-outline-dark btn-lg">Admin Login</a>
+    </div>
+</div>
+<div class="row text-center mt-5">
+    <div class="col-md-4 mb-4"><div class="card p-4 shadow feature-card"><h4>Structured Content</h4><p>Organized company-wise questions</p></div></div>
+    <div class="col-md-4 mb-4"><div class="card p-4 shadow feature-card"><h4>Real Questions</h4><p>Curated technical questions</p></div></div>
+    <div class="col-md-4 mb-4"><div class="card p-4 shadow feature-card"><h4>Efficient Learning</h4><p>Expandable explanations</p></div></div>
+</div>
+{% endblock %}

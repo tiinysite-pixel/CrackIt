@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">Schedule New Class / Meeting</h3>
+<div class="card p-4">
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Class Title</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Scheduled Date & Time</label>
+            <input type="datetime-local" name="scheduled_time" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Join Link (Google Meet, Zoom, etc.)</label>
+            <input type="url" name="join_link" class="form-control" placeholder="https://meet.google.com/..." required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Select Students (who can attend)</label>
+            <div class="border p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                {% for student in students %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="selected_students" value="{{ student.username }}" id="student_{{ loop.index }}">
+                    <label class="form-check-label" for="student_{{ loop.index }}">
+                        {{ student.username }}
+                        {% if student.personal_details and student.personal_details.name %}
+                            ({{ student.personal_details.name }})
+                        {% endif %}
+                    </label>
+                </div>
+                {% else %}
+                <p>No students found. Create students first via Add User or Course Mapping.</p>
+                {% endfor %}
+            </div>
+            <small class="text-muted">Only selected students will see this class in their dashboard.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Schedule Class</button>
+    </form>
+</div>
+{% endblock %}

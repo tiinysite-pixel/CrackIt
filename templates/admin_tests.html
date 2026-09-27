@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block admin_title %}Manage Tests{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>All Tests</h2>
+    <a href="{{ url_for('admin_create_test') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Create New Test</a>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr><th>Test Name</th><th>Start Time</th><th>Duration (min)</th><th>Proctored</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for test in tests %}
+            <tr>
+                <td>{{ test.name }}</td>
+                <td>{{ test.start_time.strftime('%Y-%m-%d %H:%M') if test.start_time else '-' }}</td>
+                <td>{{ test.duration }}</td>
+                <td>{{ 'Yes' if test.proctored else 'No' }}</td>
+                <td><span class="badge bg-{{ 'warning' if test.status == 'upcoming' else 'success' if test.status == 'completed' else 'secondary' }}">{{ test.status }}</span></td>
+                <td>
+    <a href="{{ url_for('admin_edit_test', test_id=test._id) }}" class="btn btn-sm btn-warning">Edit</a>
+    <a href="{{ url_for('admin_delete_test', test_id=test._id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this test?')">Delete</a>
+    <a href="{{ url_for('admin_test_results', test_id=test._id) }}" class="btn btn-sm btn-info">Results</a>
+</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center">No tests created yet. <a href="{{ url_for('admin_create_test') }}">Create one</a></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

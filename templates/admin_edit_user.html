@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block admin_title %}Edit User{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-warning">
+        <h4>Edit User: {{ user.username }}</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label>Email</label>
+                <input type="email" name="username" class="form-control" value="{{ user.username }}" required>
+            </div>
+            <div class="mb-3">
+                <label>Role</label>
+                <select name="role" class="form-select" id="roleSelect">
+                    <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+                    <option value="faculty" {% if user.role == 'faculty' %}selected{% endif %}>Faculty</option>
+                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="question_bank_creator" {% if user.role == 'question_bank_creator' %}selected{% endif %}>Question Bank Creator</option>
+                    <option value="test_creator" {% if user.role == 'test_creator' %}selected{% endif %}>Test Creator</option>
+                </select>
+            </div>
+            <div class="mb-3" id="sectionDiv" style="{% if user.role != 'student' %}display:none;{% endif %}">
+                <label>Section/Group (for students)</label>
+                <input type="text" name="section" class="form-control" value="{{ user.section or '' }}">
+            </div>
+            <div class="mb-3">
+                <label>New Password (leave blank to keep current)</label>
+                <input type="password" name="password" class="form-control" minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{{ url_for('admin_manage_users') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+<script>
+    document.getElementById('roleSelect').addEventListener('change', function() {
+        let sectionDiv = document.getElementById('sectionDiv');
+        sectionDiv.style.display = this.value === 'student' ? 'block' : 'none';
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block admin_title %}Test Results: {{ test.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Results for {{ test.name }}</h2>
+    <a href="{{ url_for('publish_results', test_id=test._id) }}" class="btn btn-success" onclick="return confirm('Publish results to all students?')">Publish Results</a>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr><th>Student</th><th>Status</th><th>Score</th><th>Submitted At</th><th>Details</th></tr>
+        </thead>
+        <tbody>
+            {% for a in assignments %}
+            <tr>
+                <td>{{ a.student_email }}</td>
+                <td>{{ a.status }}</td>
+                <td>{{ a.score if a.score is not none else '-' }}</td>
+                <td>{{ a.submitted_at.strftime('%Y-%m-%d %H:%M') if a.submitted_at else '-' }}</td>
+                <th>Actions</th>
+<td>
+
+    <a href="{{ url_for('admin_view_student_test', assignment_id=a._id) }}" class="btn btn-sm btn-info">View Details</a>
+</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No assignments yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
